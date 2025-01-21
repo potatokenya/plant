@@ -515,7 +515,7 @@ void app_main(void)
     printf("Use the code in the demo in your own software. Goodbye!\n");
     fflush(stdout);
 
-//This would automatically restart the ESP32
+	//This would automatically restart the ESP32
 	vTaskDelay(pdMS_TO_TICKS(1800000));//ADDED: This is a one hour delay = 500/*that's one seconde*/ * 60 * 60 = 1800000. EDIT: I set it to 2 min.
 
     //esp_restart();
