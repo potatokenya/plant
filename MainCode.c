@@ -213,7 +213,7 @@ void stemma_soil_demo(){
     }
 }
 
-void led_fade_demo(){
+void led_fade_demo(int *LIGHT_POINTER){
     // Prepare and then apply the LEDC PWM timer configuration (one time can drive multiple channels)
     ledc_timer_config_t ledc_timer = {
         .speed_mode       = LEDC_MODE,
@@ -300,7 +300,7 @@ void led_fade_demo(){
 
 }
 
-void buzzer_demo(int *LIGHT_POINTER){
+void buzzer_demo(){
     // Prepare and then apply the LEDC PWM timer configuration (we use it for the buzzer)
     ledc_timer_config_t ledc_timer_buzz = {
         .speed_mode       = BUZZ_MODE,
@@ -326,9 +326,7 @@ void buzzer_demo(int *LIGHT_POINTER){
     // Now the initialization is done
     ESP_LOGI(tag, "Initialization complete. Playing 3 tones.");
 
-    int *TOO_MUCH_LIGHT = (int*)LIGHT_POINTER;//ADDED pointer to photocell.
-
-	if(*TOO_MUCH_LIGHT){//ADDED
+	if(warnings >= 1){//ADDED
 		ESP_LOGI(tag, "Buzzer goes off, because there's too much light.");
 
 		// Set duty
@@ -416,6 +414,7 @@ int *TOO_MUCH_LIGHT = (int*)LIGHT_POINTER;//ADDED: Light pointer.
 				ESP_LOGI(tag, "Warning: Too much light. Light sensor ADC value: %d", val);
 				vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 1 second
 				*TOO_MUCH_LIGHT = 1;
+                warnings++;
 
 			} else if (adc1_get_raw(ADC1_CHANNEL_0) >= (301)){//301 instead, because we've decided that anything above 300 is fine.
 				//turns off the alarms for TOO_MUCH_LIGHT, once there isn't too much light anymore.
@@ -496,20 +495,20 @@ void app_main(void)
     printf("\nRunning the light ADC demo (20 reads - cover/uncover the sensor):\n");
     light_adc_demo(LIGHT_POINTER);
 
-    printf("\nRunning the buzzer demo:\n");
-    buzzer_demo(LIGHT_POINTER);
-
-    printf("\nRunning RGB LED demo (look at the LED!):\n");
-    led_fade_demo(LIGHT_POINTER);
-
-    printf("\nRunning display demo (look at the display!):\n");
-    display_demo(LIGHT_POINTER);
-
     printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
     temperaure_humidity_demo();
 
     printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
     stemma_soil_demo();
+
+    printf("\nRunning the buzzer demo:\n");
+    buzzer_demo();
+
+    printf("\nRunning RGB LED demo (look at the LED!):\n");
+    led_fade_demo();
+
+    printf("\nRunning display demo (look at the display!):\n");
+    display_demo(LIGHT_POINTER);
 
     printf("\nThe demos are finished. Prees the reset button if you want to restart.\n");
     printf("Use the code in the demo in your own software. Goodbye!\n");
@@ -518,5 +517,5 @@ void app_main(void)
 	//This would automatically restart the ESP32
 	vTaskDelay(pdMS_TO_TICKS(1800000));//ADDED: This is a one hour delay = 500/*that's one seconde*/ * 60 * 60 = 1800000. EDIT: I set it to 2 min.
 
-    //esp_restart();
+    esp_restart();
 }
