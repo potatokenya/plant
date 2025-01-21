@@ -235,6 +235,8 @@ void led_fade_demo(int *LIGHT_POINTER){
         .hpoint         = 0
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_red));
+
+
 //Here comes the RGB LED 1 for the light sensor
    // Prepare and then apply the LEDC PWM channel configuration
 	ledc_channel_config_t ledc_channel_red = {
@@ -505,7 +507,7 @@ void app_main(void)
     buzzer_demo();
 
     printf("\nRunning RGB LED demo (look at the LED!):\n");
-    led_fade_demo();
+    led_fade_demo(LIGHT_POINTER);
 
     printf("\nRunning display demo (look at the display!):\n");
     display_demo(LIGHT_POINTER);
