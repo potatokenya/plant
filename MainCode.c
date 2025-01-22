@@ -65,6 +65,10 @@
 #define BUZZ_DUTY               (4096) // Set duty to 50%. (2 ** 13) * 50% = 4096
 #define BUZZ_FREQUENCY          (1000) // Frequency in Hertz. Set frequency at 1 kHz
 
+void buzz_start(int delay);
+void sound(int freq, int delay);
+void buzz_stop(int delay);
+
 int warnings = 0; //Global variable for warnings
 
 void print_info(){
@@ -149,10 +153,9 @@ void display_demo(int *LIGHT_POINTER){
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_contrast(&dev, 0xff);
-		ssd1306_display_text(&dev, 3, "All is well ", 12, false);
+		ssd1306_display_text(&dev, 3, "    All is well   ", 17, false);
 		vTaskDelay(600 / portTICK_PERIOD_MS);
-		ssd1306_display_text(&dev, 4, "The plant is", 12, false);
-		ssd1306_display_text(&dev, 5, "    happy   ", 12, false);
+		ssd1306_display_text(&dev, 4, "The plant is happy", 18, false);
 		vTaskDelay(2000 / portTICK_PERIOD_MS);
 		//delay 2 seconds
 
@@ -300,6 +303,30 @@ void led_fade_demo(int *LIGHT_POINTER){
 
 }
 
+void buzz_start(int delay){
+	ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); //50% duty
+	// Update duty to apply the new value
+	ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
+	ESP_LOGI(tag, "Started buzzer.");
+	vTaskDelay((10) / portTICK_PERIOD_MS);
+}
+
+
+
+void buzz_stop(int delay){
+	ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty
+	ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL)); //updated channel, so it plays.
+	ESP_LOGI(tag, "Stopped buzzer.");
+	vTaskDelay((delay) / portTICK_PERIOD_MS);
+}
+
+void sound(int freq, int delay){
+	ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, freq)); //50% duty
+	ESP_LOGI(tag, "Playing %d Hz.", freq);
+	vTaskDelay((delay) / portTICK_PERIOD_MS);
+}
+
+
 void buzzer_demo(){
 	// Prepare and then apply the LEDC PWM timer configuration (we use it for the buzzer)
 	ledc_timer_config_t ledc_timer_buzz = {
@@ -328,72 +355,21 @@ void buzzer_demo(){
 
 	if(warnings >= 1){//ADDED
 		ESP_LOGI(tag, "Buzzer goes off, because there's too much light.");
-
-		// Set duty
-		ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); //50% duty
-		// Update duty to apply the new value
-		ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
-		//1000 ms delay
-		vTaskDelay((10) / portTICK_PERIOD_MS);
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 1000)); //50% duty
-		ESP_LOGI(tag, "Playing 1000 Hz.");
-		vTaskDelay((600) / portTICK_PERIOD_MS);
-
-		// update duty to 800 hz
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 800)); //50% duty
-		ESP_LOGI(tag, "Playing 800 Hz.");
-		vTaskDelay((600) / portTICK_PERIOD_MS);
-
-		// update duty to 600 hz
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 400)); //50% duty
-		ESP_LOGI(tag, "Playing 600 Hz.");
-		vTaskDelay((600) / portTICK_PERIOD_MS);
-
-		// update duty to 600 hz
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 200)); //50% duty
-		ESP_LOGI(tag, "Playing 400 Hz.");// is it really 400?
-		vTaskDelay((600) / portTICK_PERIOD_MS);
-
-		// Turning off buzzer
-		ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty//the buzzer goes off for a longer time.
-		ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL)); //updated channel, so it plays.
-
-		vTaskDelay((10) / portTICK_PERIOD_MS);
+		buzz_start(10);
+		sound(1000, 800);
+		sound(800, 800);
+		sound(600, 800);
+		sound(400, 800);
+		buzz_stop(10);
 
 	} else {//ADDED
 		ESP_LOGI(tag, "Everything is fine, plant is happy, plays a happy tone.");
-
-		// Set duty
-		ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); //50% duty
-		// Update duty to apply the new value
-		ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
-		//1000 ms delay
-		vTaskDelay((10) / portTICK_PERIOD_MS);
-
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 200)); //50% duty
-		ESP_LOGI(tag, "Playing 200 Hz.");
-		vTaskDelay((1000) / portTICK_PERIOD_MS);
-
-		// update duty to 800 hz
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 400)); //50% duty
-		ESP_LOGI(tag, "Playing 600 Hz.");
-		vTaskDelay((1000) / portTICK_PERIOD_MS);
-
-		// update duty to 600 hz
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 800)); //50% duty
-		ESP_LOGI(tag, "Playing 800 Hz.");
-		vTaskDelay((1000) / portTICK_PERIOD_MS);
-
-		// update duty to 400 hz
-		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 1000)); //50% duty
-		ESP_LOGI(tag, "Playing 1000 Hz.");// is it really 400?
-		vTaskDelay((600) / portTICK_PERIOD_MS);
-
-		// Turning off buzzer
-		ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty//the buzzer goes off for a longer time.
-		ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL)); //updated channel, so it plays.
-
-		vTaskDelay((10) / portTICK_PERIOD_MS);
+		buzz_start(10);
+		sound(400, 800);
+		sound(600, 800);
+		sound(800, 800);
+		sound(1000, 800);
+		buzz_stop(10);
 
 	}//this buzzer goes off to say that the plant is happy.
 }
@@ -498,16 +474,16 @@ void app_main(void)
 	light_adc_demo(LIGHT_POINTER);
 
 	printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
-	temperaure_humidity_demo();
+	//temperaure_humidity_demo();
 
 	printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
-	stemma_soil_demo();
+	//stemma_soil_demo();
 
 	printf("\nRunning the buzzer demo:\n");
 	buzzer_demo();
 
 	printf("\nRunning RGB LED demo (look at the LED!):\n");
-	led_fade_demo(LIGHT_POINTER);
+	//led_fade_demo(LIGHT_POINTER);
 
 	printf("\nRunning display demo (look at the display!):\n");
 	display_demo(LIGHT_POINTER);
