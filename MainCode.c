@@ -149,9 +149,10 @@ void display_demo(int *LIGHT_POINTER){
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_contrast(&dev, 0xff);
-		ssd1306_display_text(&dev, 3, "    All is well   ", 17, false);
+		ssd1306_display_text(&dev, 3, "All is well ", 12, false);
 		vTaskDelay(600 / portTICK_PERIOD_MS);
-		ssd1306_display_text(&dev, 4, "The plant is happy", 18, false);
+		ssd1306_display_text(&dev, 4, "The plant is", 12, false);
+		ssd1306_display_text(&dev, 5, "    happy   ", 12, false);
 		vTaskDelay(2000 / portTICK_PERIOD_MS);
 		//delay 2 seconds
 
