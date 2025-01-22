@@ -68,42 +68,42 @@
 int warnings = 0; //Global variable for warnings
 
 void print_info(){
-    /* Print chip information */
-    esp_chip_info_t chip_info;
-    uint32_t flash_size;
-    esp_chip_info(&chip_info);
-    printf("This is %s chip with %d CPU core(s), WiFi%s%s, ",
-           CONFIG_IDF_TARGET,
-           chip_info.cores,
-           (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-           (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+	/* Print chip information */
+	esp_chip_info_t chip_info;
+	uint32_t flash_size;
+	esp_chip_info(&chip_info);
+	printf("This is %s chip with %d CPU core(s), WiFi%s%s, ",
+		   CONFIG_IDF_TARGET,
+		chip_info.cores,
+		(chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+		   (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 
-    unsigned major_rev = chip_info.revision / 100;
-    unsigned minor_rev = chip_info.revision % 100;
-    printf("silicon revision v%d.%d, ", major_rev, minor_rev);
-    if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
-        printf("Get flash size failed");
-        return;
-    }
+	unsigned major_rev = chip_info.revision / 100;
+	unsigned minor_rev = chip_info.revision % 100;
+	printf("silicon revision v%d.%d, ", major_rev, minor_rev);
+	if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
+		printf("Get flash size failed");
+		return;
+	}
 
-    printf("%uMB %s flash\n", flash_size / (1024 * 1024),
-           (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+	printf("%uMB %s flash\n", flash_size / (1024 * 1024),
+		   (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
+	printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 }
 
 void display_demo(int *LIGHT_POINTER){
-    SSD1306_t dev;
-    //int center, top; //, bottom;
-    //char lineChar[20];
+	SSD1306_t dev;
+	//int center, top; //, bottom;
+	//char lineChar[20];
 
-    //Initialize the display (shared i2c) only once after boot.
-    i2c_master_shared_i2c_init(&dev);
+	//Initialize the display (shared i2c) only once after boot.
+	i2c_master_shared_i2c_init(&dev);
 
-    //Uncomment this if you want to flip the display
-    //dev._flip = true;
+	//Uncomment this if you want to flip the display
+	//dev._flip = true;
 
-    ssd1306_init(&dev, 128, 64);
+	ssd1306_init(&dev, 128, 64);
 
 	int *TOO_MUCH_LIGHT = (int*)LIGHT_POINTER;//ADDED: Light pointer.
 
@@ -174,81 +174,68 @@ void display_demo(int *LIGHT_POINTER){
 }
 
 void temperaure_humidity_demo(){
-    i2c_dev_t dev = {0};
+	i2c_dev_t dev = {0};
 
-    //Initialize the sensor (shared i2c) only once after boot.
-    ESP_ERROR_CHECK(am2320_shared_i2c_init(&dev, I2C_NUM));
+	//Initialize the sensor (shared i2c) only once after boot.
+	ESP_ERROR_CHECK(am2320_shared_i2c_init(&dev, I2C_NUM));
 
-    float temperature, humidity;
+	float temperature, humidity;
 
-    for (int i = 0; i < 20; i++)
-    {
-        esp_err_t res = am2320_get_rht(&dev, &temperature, &humidity);
-        if (res == ESP_OK)
-            ESP_LOGI(tag, "Temperature: %.1f°C, Humidity: %.1f%%", temperature, humidity);
-        else
-            ESP_LOGE(tag, "Error reading data: %d (%s)", res, esp_err_to_name(res));
+	for (int i = 0; i < 20; i++)
+	{
+		esp_err_t res = am2320_get_rht(&dev, &temperature, &humidity);
+		if (res == ESP_OK)
+			ESP_LOGI(tag, "Temperature: %.1f°C, Humidity: %.1f%%", temperature, humidity);
+		else
+			ESP_LOGE(tag, "Error reading data: %d (%s)", res, esp_err_to_name(res));
 
-        //500 ms delay
-        vTaskDelay((500) / portTICK_PERIOD_MS);
-    }
+		//500 ms delay
+		vTaskDelay((500) / portTICK_PERIOD_MS);
+	}
 }
 
 void stemma_soil_demo(){
-    int ret = ESP_OK;
-    uint16_t moisture_value = 0;
-    float temperature_value = 0;
+	int ret = ESP_OK;
+	uint16_t moisture_value = 0;
+	float temperature_value = 0;
 
-    //Initialize the sensor (shared i2c) only once after boot.
-    ESP_ERROR_CHECK(adafruit_stemma_soil_sensor_shared_i2c_init());
+	//Initialize the sensor (shared i2c) only once after boot.
+	ESP_ERROR_CHECK(adafruit_stemma_soil_sensor_shared_i2c_init());
 
-    for (int i = 0; i < 10; i++)
-    {
-        ret = adafruit_stemma_soil_sensor_read_moisture(I2C_NUM, &moisture_value);
+	for (int i = 0; i < 10; i++)
+	{
+		ret = adafruit_stemma_soil_sensor_read_moisture(I2C_NUM, &moisture_value);
 
-        if (ret == ESP_OK)
-        {
-            ESP_LOGI(tag, "Adafruit Stemma sensor value: =%u", moisture_value);
-        }
+		if (ret == ESP_OK)
+		{
+			ESP_LOGI(tag, "Adafruit Stemma sensor value: =%u", moisture_value);
+		}
 
-        ret = adafruit_stemma_soil_sensor_read_temperature(I2C_NUM, &temperature_value);
+		ret = adafruit_stemma_soil_sensor_read_temperature(I2C_NUM, &temperature_value);
 
-        if (ret == ESP_OK)
-        {
-            ESP_LOGI(tag, "Adafruit Stemma sensor value: =%f", temperature_value);
-        }
-        
-        //500 ms delay
-        vTaskDelay((500) / portTICK_PERIOD_MS);
-    }
+		if (ret == ESP_OK)
+		{
+			ESP_LOGI(tag, "Adafruit Stemma sensor value: =%f", temperature_value);
+		}
+
+		//500 ms delay
+		vTaskDelay((500) / portTICK_PERIOD_MS);
+	}
 }
 
 void led_fade_demo(int *LIGHT_POINTER){
-    // Prepare and then apply the LEDC PWM timer configuration (one time can drive multiple channels)
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode       = LEDC_MODE,
-        .duty_resolution  = LEDC_DUTY_RES,
-        .timer_num        = LEDC_TIMER,
-        .freq_hz          = LEDC_FREQUENCY,  // Set output frequency at 1 kHz
-        .clk_cfg          = LEDC_AUTO_CLK
-    };
-    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+	// Prepare and then apply the LEDC PWM timer configuration (one time can drive multiple channels)
+	ledc_timer_config_t ledc_timer = {
+		.speed_mode       = LEDC_MODE,
+		.duty_resolution  = LEDC_DUTY_RES,
+		.timer_num        = LEDC_TIMER,
+		.freq_hz          = LEDC_FREQUENCY,  // Set output frequency at 1 kHz
+		.clk_cfg          = LEDC_AUTO_CLK
+	};
+	ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
 
-    // Prepare and then apply the LEDC PWM channel configuration
-    ledc_channel_config_t ledc_channel_red = {
-        .speed_mode     = LEDC_MODE,
-        .channel        = LEDC_CHANNEL_RED,
-        .timer_sel      = LEDC_TIMER,
-        .intr_type      = LEDC_INTR_DISABLE,
-        .gpio_num       = LEDC_OUTPUT_IO_RED,
-        .duty           = 0, // Set duty to 0%
-        .hpoint         = 0
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_red));
-
-
-//Here comes the RGB LED 1 for the light sensor
-   // Prepare and then apply the LEDC PWM channel configuration
+	//Here comes the RGB LED 1 for the light sensor
+	// Prepare and then apply the LEDC PWM channel configuration
 	ledc_channel_config_t ledc_channel_red = {
 		.speed_mode     = LEDC_MODE,
 		.channel        = LEDC_CHANNEL_RED,
@@ -272,8 +259,8 @@ void led_fade_demo(int *LIGHT_POINTER){
 	ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_green));
 
 
-    // Now the initialization is done
-    ESP_LOGI(tag, "Initialization complete. Displaying either green or red.");
+	// Now the initialization is done
+	ESP_LOGI(tag, "Initialization complete. Displaying either green or red.");
 
 	ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_RED, 0));
 	ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_GREEN, 4096));
@@ -300,75 +287,75 @@ void led_fade_demo(int *LIGHT_POINTER){
 		vTaskDelay((10) / portTICK_PERIOD_MS);
 		//printf("%d\n", duty);//ADDED: insert code for red RGB LED, that should stay on until all warnings are taken care of and the code refreshes.
 	}
-//RGB LED 1 for light sensor is done
+	//RGB LED 1 for light sensor is done
 
-//RGB LED 2 for soil sensor begins
+	//RGB LED 2 for soil sensor begins
 
-//RGB LED 2 for soil sensor is done
+	//RGB LED 2 for soil sensor is done
 
-//RGB LED 3 for Temperature and humidity sensor begins
+	//RGB LED 3 for Temperature and humidity sensor begins
 
-//RGB LED 3 for Temperature and humidity sensor is done
+	//RGB LED 3 for Temperature and humidity sensor is done
 
 }
 
 void buzzer_demo(){
-    // Prepare and then apply the LEDC PWM timer configuration (we use it for the buzzer)
-    ledc_timer_config_t ledc_timer_buzz = {
-        .speed_mode       = BUZZ_MODE,
-        .duty_resolution  = BUZZ_DUTY_RES,
-        .timer_num        = BUZZ_TIMER,
-        .freq_hz          = BUZZ_FREQUENCY,  // Set output frequency at 1 kHz
-        .clk_cfg          = LEDC_AUTO_CLK
-    };
-    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer_buzz));
+	// Prepare and then apply the LEDC PWM timer configuration (we use it for the buzzer)
+	ledc_timer_config_t ledc_timer_buzz = {
+		.speed_mode       = BUZZ_MODE,
+		.duty_resolution  = BUZZ_DUTY_RES,
+		.timer_num        = BUZZ_TIMER,
+		.freq_hz          = BUZZ_FREQUENCY,  // Set output frequency at 1 kHz
+		.clk_cfg          = LEDC_AUTO_CLK
+	};
+	ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer_buzz));
 
-    // Prepare and then apply the LEDC PWM channel configuration
-    ledc_channel_config_t ledc_channel_buzz = {
-        .speed_mode     = BUZZ_MODE,
-        .channel        = BUZZ_CHANNEL,
-        .timer_sel      = BUZZ_TIMER,
-        .intr_type      = LEDC_INTR_DISABLE,
-        .gpio_num       = BUZZ_OUTPUT_IO,
-        .duty           = 0, // Set duty to 0%
-        .hpoint         = 0
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_buzz));
+	// Prepare and then apply the LEDC PWM channel configuration
+	ledc_channel_config_t ledc_channel_buzz = {
+		.speed_mode     = BUZZ_MODE,
+		.channel        = BUZZ_CHANNEL,
+		.timer_sel      = BUZZ_TIMER,
+		.intr_type      = LEDC_INTR_DISABLE,
+		.gpio_num       = BUZZ_OUTPUT_IO,
+		.duty           = 0, // Set duty to 0%
+		.hpoint         = 0
+	};
+	ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_buzz));
 
-    // Now the initialization is done
-    ESP_LOGI(tag, "Initialization complete. Playing 3 tones.");
+	// Now the initialization is done
+	ESP_LOGI(tag, "Initialization complete. Playing 3 tones.");
 
 	if(warnings >= 1){//ADDED
 		ESP_LOGI(tag, "Buzzer goes off, because there's too much light.");
 
 		// Set duty
-			ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); //50% duty
+		ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); //50% duty
 		// Update duty to apply the new value
-			ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
+		ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
 		//1000 ms delay
-			vTaskDelay((10) / portTICK_PERIOD_MS);
-			ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 1000)); //50% duty
-			ESP_LOGI(tag, "Playing 1000 Hz.");
-			vTaskDelay((600) / portTICK_PERIOD_MS);
+		vTaskDelay((10) / portTICK_PERIOD_MS);
+		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 1000)); //50% duty
+		ESP_LOGI(tag, "Playing 1000 Hz.");
+		vTaskDelay((600) / portTICK_PERIOD_MS);
 
 		// update duty to 800 hz
-			ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 800)); //50% duty
-			ESP_LOGI(tag, "Playing 800 Hz.");
-			vTaskDelay((600) / portTICK_PERIOD_MS);
+		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 800)); //50% duty
+		ESP_LOGI(tag, "Playing 800 Hz.");
+		vTaskDelay((600) / portTICK_PERIOD_MS);
 
 		// update duty to 600 hz
-			ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 400)); //50% duty
-			ESP_LOGI(tag, "Playing 600 Hz.");
-			vTaskDelay((600) / portTICK_PERIOD_MS);
+		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 400)); //50% duty
+		ESP_LOGI(tag, "Playing 600 Hz.");
+		vTaskDelay((600) / portTICK_PERIOD_MS);
 
 		// update duty to 600 hz
-			ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 200)); //50% duty
-			ESP_LOGI(tag, "Playing 400 Hz.");// is it really 400?
-			vTaskDelay((600) / portTICK_PERIOD_MS);
+		ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 200)); //50% duty
+		ESP_LOGI(tag, "Playing 400 Hz.");// is it really 400?
+		vTaskDelay((600) / portTICK_PERIOD_MS);
 
 		// Turning off buzzer
-			ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty//the buzzer goes off for a longer time.
-			ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL)); //updated channel, so it plays.
+		ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty//the buzzer goes off for a longer time.
+		ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL)); //updated channel, so it plays.
 
 		vTaskDelay((10) / portTICK_PERIOD_MS);
 
@@ -411,31 +398,31 @@ void buzzer_demo(){
 }
 
 void light_adc_demo(int *LIGHT_POINTER){
-    //Configuring the ADC
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11); //ADC1_CHANNEL_0 is on GPIO0 (GPIOzero)
+	//Configuring the ADC
+	adc1_config_width(ADC_WIDTH_BIT_12);
+	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_0); //ADC1_CHANNEL_0 is on GPIO0 (GPIOzero)
 
-    for (int i = 0; i < 5; i++)
-    {
-        int val = adc1_get_raw(ADC1_CHANNEL_0);
-        ESP_LOGI(tag, "Light sensor ADC value: %d", val);
-        vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 1 second
+	for (int i = 0; i < 5; i++)
+	{
+		int val = adc1_get_raw(ADC1_CHANNEL_0);
+		ESP_LOGI(tag, "Light sensor ADC value: %d", val);
+		vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 1 second
 
-int *TOO_MUCH_LIGHT = (int*)LIGHT_POINTER;//ADDED: Light pointer.
+		int *TOO_MUCH_LIGHT = (int*)LIGHT_POINTER;//ADDED: Light pointer.
 
-			//ADDED
-			if(adc1_get_raw(ADC1_CHANNEL_0) <= (300)){
-				ESP_LOGI(tag, "Warning: Too much light. Light sensor ADC value: %d", val);
-				vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 1 second
-				*TOO_MUCH_LIGHT = 1;
-                warnings++;
+		//ADDED
+		if(adc1_get_raw(ADC1_CHANNEL_0) <= (300)){
+			ESP_LOGI(tag, "Warning: Too much light. Light sensor ADC value: %d", val);
+			vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 1 second
+			*TOO_MUCH_LIGHT = 1;
+			warnings++;
 
-			} else if (adc1_get_raw(ADC1_CHANNEL_0) >= (301)){//301 instead, because we've decided that anything above 300 is fine.
-				//turns off the alarms for TOO_MUCH_LIGHT, once there isn't too much light anymore.
-				*TOO_MUCH_LIGHT = 0;
-			}
+		} else if (adc1_get_raw(ADC1_CHANNEL_0) >= (301)){//301 instead, because we've decided that anything above 300 is fine.
+			//turns off the alarms for TOO_MUCH_LIGHT, once there isn't too much light anymore.
+			*TOO_MUCH_LIGHT = 0;
+		}
 
-    }
+	}
 }
 
 
@@ -460,24 +447,24 @@ static void gpio_task_example(void* arg)
 }
 void app_main(void)
 {
-    printf("Hello! Starting now with the demos ;-)\n");
+	printf("Hello! Starting now with the demos ;-)\n");
 
-    printf("\nPrinting device information:\n");
-    print_info();
+	printf("\nPrinting device information:\n");
+	print_info();
 
-    //Initialize common I2C port for display, soil sensor, and temperature/umidity sensor
-    //Initialized it as follows only once here in the main, then use the shared_init 
-    //functions for the different components as shown in this demo (see _demo functions).
-    i2c_config_t conf;
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = I2C_MASTER_SDA_GPIO;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num = I2C_MASTER_SCL_GPIO;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
-    conf.clk_flags = 0;
-    i2c_param_config(I2C_NUM, &conf);
-    ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
+	//Initialize common I2C port for display, soil sensor, and temperature/umidity sensor
+	//Initialized it as follows only once here in the main, then use the shared_init
+	//functions for the different components as shown in this demo (see _demo functions).
+	i2c_config_t conf;
+	conf.mode = I2C_MODE_MASTER;
+	conf.sda_io_num = I2C_MASTER_SDA_GPIO;
+	conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+	conf.scl_io_num = I2C_MASTER_SCL_GPIO;
+	conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+	conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
+	conf.clk_flags = 0;
+	i2c_param_config(I2C_NUM, &conf);
+	ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
 
 	//zero-initialize the config structure.
 	gpio_config_t io_conf;//original setup from code
@@ -506,30 +493,30 @@ void app_main(void)
 
 	int TOO_MUCH_LIGHT = 0, *LIGHT_POINTER = &TOO_MUCH_LIGHT;//ADDED: the value of the alarm and a pointer to it
 
-    printf("\nRunning the light ADC demo (20 reads - cover/uncover the sensor):\n");
-    light_adc_demo(LIGHT_POINTER);
+	printf("\nRunning the light ADC demo (20 reads - cover/uncover the sensor):\n");
+	light_adc_demo(LIGHT_POINTER);
 
-    printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
-    temperaure_humidity_demo();
+	printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
+	temperaure_humidity_demo();
 
-    printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
-    stemma_soil_demo();
+	printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
+	stemma_soil_demo();
 
-    printf("\nRunning the buzzer demo:\n");
-    buzzer_demo();
+	printf("\nRunning the buzzer demo:\n");
+	buzzer_demo();
 
-    printf("\nRunning RGB LED demo (look at the LED!):\n");
-    led_fade_demo(LIGHT_POINTER);
+	printf("\nRunning RGB LED demo (look at the LED!):\n");
+	led_fade_demo(LIGHT_POINTER);
 
-    printf("\nRunning display demo (look at the display!):\n");
-    display_demo(LIGHT_POINTER);
+	printf("\nRunning display demo (look at the display!):\n");
+	display_demo(LIGHT_POINTER);
 
-    printf("\nThe demos are finished. Prees the reset button if you want to restart.\n");
-    printf("Use the code in the demo in your own software. Goodbye!\n");
-    fflush(stdout);
+	printf("\nThe demos are finished. Prees the reset button if you want to restart.\n");
+	printf("Use the code in the demo in your own software. Goodbye!\n");
+	fflush(stdout);
 
 	//This would automatically restart the ESP32
 	vTaskDelay(pdMS_TO_TICKS(1800000));//ADDED: This is a one hour delay = 500/*that's one seconde*/ * 60 * 60 = 1800000. EDIT: I set it to 2 min.
 
-    esp_restart();
+	esp_restart();
 }
