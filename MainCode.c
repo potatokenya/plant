@@ -71,6 +71,11 @@ void buzz_stop(int delay);
 
 int warnings = 0; //Global variable for warnings
 
+float temperature_out = 0;
+float humidity_out = 0;
+float temperature_in = 0;
+float humidity_in = 0;
+
 void print_info(){
 	/* Print chip information */
 	esp_chip_info_t chip_info;
@@ -96,24 +101,24 @@ void print_info(){
 	printf("Minimum free heap size: %ld bytes\n", esp_get_minimum_free_heap_size());
 }
 
-void display_demo(int *LIGHT_POINTER){
+void display_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINTER, int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
 	SSD1306_t dev;
-	//int center, top; //, bottom;
-	//char lineChar[20];
 
 	//Initialize the display (shared i2c) only once after boot.
 	i2c_master_shared_i2c_init(&dev);
 
-	//Uncomment this if you want to flip the display
-	//dev._flip = true;
-
 	ssd1306_init(&dev, 128, 64);
-
 	int *TOO_MUCH_LIGHT = (int*)LIGHT_POINTER;//ADDED: Light pointer.
+	int *TEMP_OUT = (int*)TEMP_OUT_POINTER;
+	int *HUM_OUT = (int*)HUM_OUT_POINTER;
+	int *TEMP_IN = (int*)TEMP_IN_POINTER;
+	int *HUM_IN = (int*)HUM_IN_POINTER;
 
 	if(warnings >= 1){//ADDED: display warning about light pointer.
 
-		ESP_LOGI(tag, "Displaying warning about light.");
+		ESP_LOGI(tag, "Displaying warnings");
+		ssd1306_clear_screen(&dev, false);
+		ssd1306_clear_screen(&dev, false);
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_contrast(&dev, 0xff);
@@ -121,63 +126,93 @@ void display_demo(int *LIGHT_POINTER){
 		ssd1306_display_text(&dev, 3, "WARNING", 7, false); //ADDED: changed it to be in the center
 		ssd1306_hardware_scroll(&dev, SCROLL_RIGHT);
 
-		vTaskDelay(5000 / portTICK_PERIOD_MS);
+		vTaskDelay(3000 / portTICK_PERIOD_MS);
 
 		ssd1306_hardware_scroll(&dev, SCROLL_STOP);
-		if(*TOO_MUCH_LIGHT){
-			ssd1306_clear_screen(&dev, false);
-			ssd1306_clear_screen(&dev, false);
-
-			ssd1306_display_text(&dev, 3, "     WARNING     ", 17, false);
-			ssd1306_display_text(&dev, 4, " Too much light! ", 17, false);
-
-			vTaskDelay(10000 / portTICK_PERIOD_MS);
-
-			ssd1306_clear_screen(&dev, false);
-			ssd1306_clear_screen(&dev, false);
-			ssd1306_display_text_x3(&dev, 3, "(T-T)", 5, false);
-			ssd1306_hardware_scroll(&dev, SCROLL_RIGHT);
-
-			vTaskDelay(10000 / portTICK_PERIOD_MS);
-			ssd1306_hardware_scroll(&dev, SCROLL_STOP);
-			//delay 10 seconds
-
-			ssd1306_clear_screen(&dev, false);
-			ssd1306_clear_screen(&dev, false);
-			ssd1306_display_text_x3(&dev, 3, "(T-T)", 5, false);
-			vTaskDelay(2000 / portTICK_PERIOD_MS);}
-
-
-	} else {
-		ESP_LOGI(tag, "Plant is happy, displaying emoji.");
-		ssd1306_clear_screen(&dev, false);
-		ssd1306_clear_screen(&dev, false);
-		ssd1306_contrast(&dev, 0xff);
-		ssd1306_display_text(&dev, 3, "    All is well   ", 17, false);
-		vTaskDelay(600 / portTICK_PERIOD_MS);
-		ssd1306_display_text(&dev, 4, "The plant is happy", 18, false);
-		vTaskDelay(2000 / portTICK_PERIOD_MS);
-		//delay 2 seconds
 
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_clear_screen(&dev, false);
-		ssd1306_display_text_x3(&dev, 3, "(^_^)", 5, false);
-		ssd1306_hardware_scroll(&dev, SCROLL_RIGHT);
+		ssd1306_clear_screen(&dev, false);
+		ssd1306_clear_screen(&dev, false);
+
+		char warning_text[20];
+		snprintf(warning_text, sizeof(warning_text), "  WARNING(S): %d", warnings);
+		ssd1306_display_text(&dev, 0, warning_text, strlen(warning_text), false);
+
+
+		if(*TOO_MUCH_LIGHT){//ADDED: display warning about light pointer.
+			ssd1306_display_text(&dev, 1, " Too much light! ", 17, false);
+		}
+		if(*TEMP_OUT){
+			ssd1306_display_text(&dev, 2, " Temp (out) low! ", 17, false);
+		} else if(TEMP_OUT == 2){
+			ssd1306_display_text(&dev, 2, " Temp(out) high! ", 17, false);
+		}
+
+		if(*HUM_OUT){
+			ssd1306_display_text(&dev, 3, "  Hum(out) low!  ", 17, false);
+		} else if(HUM_OUT == 2){
+			ssd1306_display_text(&dev, 3, " Hum (out) high! ", 17, false);
+		}
+
+
+		if(*TEMP_IN){
+			ssd1306_display_text(&dev, 4, " Temp (in) low! ", 17, false);
+		} else if(TEMP_IN == 2){
+			ssd1306_display_text(&dev, 4, " Temp(in) high! ", 17, false);
+		}
+
+		if(*HUM_IN){
+			ssd1306_display_text(&dev, 5, "  Hum (in) low!  ", 17, false);
+		} else if(HUM_IN == 2){
+			ssd1306_display_text(&dev, 5, "  Hum(in) high!  ", 17, false);
+		}
 
 		vTaskDelay(10000 / portTICK_PERIOD_MS);
-		ssd1306_hardware_scroll(&dev, SCROLL_STOP);
-		//delay 10 seconds
 
 		ssd1306_clear_screen(&dev, false);
 		ssd1306_clear_screen(&dev, false);
-		ssd1306_display_text_x3(&dev, 3, "(^_^)", 5, false);
-		vTaskDelay(2000 / portTICK_PERIOD_MS);
-		//delay 2 seconds
+	}
+
+	//Display plant info/messurements
+	ESP_LOGI(tag, "Plant info.");
+	ssd1306_clear_screen(&dev, false);
+	ssd1306_clear_screen(&dev, false);
+	ssd1306_clear_screen(&dev, false);
+	ssd1306_clear_screen(&dev, false);
+	ssd1306_contrast(&dev, 0xff);
+	ssd1306_display_text(&dev, 0, "   Plant info   ", 17, false);
+	ssd1306_display_text(&dev, 1, "Sen:  mes:  id:  ", 18, false);
+
+	char tempout_text[20];
+	snprintf(tempout_text, sizeof(tempout_text), "T(O) %.1f  10-30", temperature_out);
+	ssd1306_display_text(&dev, 2, tempout_text, 17, false);
+
+	char tempin_text[20];
+	snprintf(tempin_text, sizeof(tempin_text), "T(I) %.1f  10-30", temperature_in);
+	ssd1306_display_text(&dev, 3, tempin_text, 17, false);
+
+	char humout_text[20];
+	snprintf(humout_text, sizeof(humout_text), "H(O) %.1f%% 40-60", humidity_out);
+	ssd1306_display_text(&dev, 4, humout_text, 17, false);
+
+	char humin_text[20];
+	snprintf(humin_text, sizeof(humin_text), "H(I) %.1f%% 60-70", humidity_in);
+	ssd1306_display_text(&dev, 5, humin_text, 17, false);
+
+	char light_text[20];
+	snprintf(light_text, sizeof(light_text), "light too high");
+	ssd1306_display_text(&dev, 6, light_text, 17, false);
+
+	if(warnings == 0){
+		ssd1306_display_text(&dev, 7, "      (^_^)      ", 17, false);
+	} else if(warnings > 0){
+		ssd1306_display_text(&dev, 7, "      (T_T)      ", 17, false);
 	}
 
 }
 
-void temperaure_humidity_demo(){
+void temperaure_humidity_demo(int *TEMP_OUT_POINTER, int *HUM_OUT_POINTER){
 	i2c_dev_t dev = {0};
 
 	//Initialize the sensor (shared i2c) only once after boot.
@@ -185,20 +220,63 @@ void temperaure_humidity_demo(){
 
 	float temperature, humidity;
 
-	for (int i = 0; i < 20; i++)
-	{
-		esp_err_t res = am2320_get_rht(&dev, &temperature, &humidity);
-		if (res == ESP_OK)
-			ESP_LOGI(tag, "Temperature: %.1f°C, Humidity: %.1f%%", temperature, humidity);
-		else
-			ESP_LOGE(tag, "Error reading data: %d (%s)", res, esp_err_to_name(res));
+	esp_err_t res = am2320_get_rht(&dev, &temperature, &humidity);
+	if (res == ESP_OK)
+		ESP_LOGI(tag, "Temperature: %.1f°C, Humidity: %.1f%%", temperature, humidity);
+	else
+		ESP_LOGE(tag, "Error reading data: %d (%s)", res, esp_err_to_name(res));
 
 		//500 ms delay
 		vTaskDelay((500) / portTICK_PERIOD_MS);
+
+	//Temperature
+
+	//temperature >= 10 && temperature <= 28
+
+	if(temperature >= 10 && temperature <= 30){
+		ESP_LOGI(tag, "Temperature is good!");
+		*TEMP_OUT_POINTER = 0;
+
+	} else if (temperature <= 10) {
+		ESP_LOGI(tag, "Temperature is too low!");
+		*TEMP_OUT_POINTER = 1;
+		warnings++;
+
+	} else if (temperature >= 30) {
+		ESP_LOGI(tag, "Temperature is too high!");
+		*TEMP_OUT_POINTER = 2;
+		warnings++;
+
+	}else{
+		return;
 	}
+
+	vTaskDelay((1000) / portTICK_PERIOD_MS);
+
+	//Humidity
+	if(humidity >= 40 && humidity <= 60){
+		ESP_LOGI(tag, "Humidity is good!");
+		*HUM_OUT_POINTER = 0;
+
+	} else if (humidity < 40) {
+		ESP_LOGI(tag, "Humidity is too low! Ideal: 40 - 60 %%");
+		*HUM_OUT_POINTER = 1;
+		warnings++;
+
+	} else if (humidity > 60) {
+		ESP_LOGI(tag, "Humidity is too high! Ideal: 40 - 60 %%");
+		*HUM_OUT_POINTER = 2;
+
+
+	}else{
+		return;
+	}
+
+	temperature_out = temperature;
+	humidity_out = humidity;
 }
 
-void stemma_soil_demo(){
+void stemma_soil_demo(int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
 	int ret = ESP_OK;
 	uint16_t moisture_value = 0;
 	float temperature_value = 0;
