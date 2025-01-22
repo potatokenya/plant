@@ -1,0 +1,9 @@
+{
+    "idf.espIdfPathWin": "C:\\Users\\User\\esp\\v5.4\\esp-idf",
+    "idf.toolsPathWin": "C:\\Users\\User\\.espressif",
+    "idf.openOcdConfigs": [
+        "board/esp32c3-builtin.cfg"
+    ],
+    "idf.flashType": "UART",
+    "idf.portWin": "COM9"
+}
