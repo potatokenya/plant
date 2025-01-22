@@ -346,6 +346,7 @@ void buzzer_demo(){
 		// Update duty to apply the new value
 			ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
 		//1000 ms delay
+			vTaskDelay((10) / portTICK_PERIOD_MS);
 			ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, 1000)); //50% duty
 			ESP_LOGI(tag, "Playing 1000 Hz.");
 			vTaskDelay((600) / portTICK_PERIOD_MS);
