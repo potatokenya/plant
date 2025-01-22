@@ -521,4 +521,3 @@ void app_main(void)
 
     esp_restart();
 }
-sdfghjklæ
