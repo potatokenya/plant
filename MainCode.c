@@ -59,7 +59,7 @@
 
 #define BUZZ_TIMER              LEDC_TIMER_1
 #define BUZZ_MODE               LEDC_LOW_SPEED_MODE
-#define BUZZ_OUTPUT_IO          (9) // Define the output GPIO for red
+#define BUZZ_OUTPUT_IO          (18) // Define the output GPIO for red
 #define BUZZ_CHANNEL            LEDC_CHANNEL_4
 #define BUZZ_DUTY_RES           LEDC_TIMER_13_BIT // Set duty resolution to 13 bits
 #define BUZZ_DUTY               (4096) // Set duty to 50%. (2 ** 13) * 50% = 4096
@@ -86,10 +86,10 @@ void print_info(){
 		return;
 	}
 
-	printf("%uMB %s flash\n", flash_size / (1024 * 1024),
+	printf("%luMB %s flash\n", flash_size / (1024 * 1024),
 		   (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-	printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
+	printf("Minimum free heap size: %ld bytes\n", esp_get_minimum_free_heap_size());
 }
 
 void display_demo(int *LIGHT_POINTER){
@@ -241,7 +241,7 @@ void led_fade_demo(int *LIGHT_POINTER){
 		.channel        = LEDC_CHANNEL_RED,
 		.timer_sel      = LEDC_TIMER,
 		.intr_type      = LEDC_INTR_DISABLE,
-		.gpio_num       = LEDC_OUTPUT_IO_1G,
+		.gpio_num       = LEDC_OUTPUT_IO_1R,
 		.duty           = 0, // Set duty to 0%
 		.hpoint         = 0
 	};
@@ -400,7 +400,7 @@ void buzzer_demo(){
 void light_adc_demo(int *LIGHT_POINTER){
 	//Configuring the ADC
 	adc1_config_width(ADC_WIDTH_BIT_12);
-	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_0); //ADC1_CHANNEL_0 is on GPIO0 (GPIOzero)
+	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11); //ADC1_CHANNEL_0 is on GPIO0 (GPIOzero)
 
 	for (int i = 0; i < 5; i++)
 	{
