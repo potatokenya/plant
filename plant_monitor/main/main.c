@@ -123,8 +123,19 @@ void display_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINTE
         ESP_LOGI(tag, "Displaying warnings");
         ssd1306_clear_screen(&dev, false);
         ssd1306_clear_screen(&dev, false);
+        ssd1306_clear_screen(&dev, false);
+        ssd1306_clear_screen(&dev, false);
         ssd1306_contrast(&dev, 0xff);
 
+        ssd1306_display_text(&dev, 3, "WARNING", 7, false); //ADDED: changed it to be in the center
+		ssd1306_hardware_scroll(&dev, SCROLL_RIGHT);
+
+		vTaskDelay(3000 / portTICK_PERIOD_MS);
+
+		ssd1306_hardware_scroll(&dev, SCROLL_STOP);
+
+        ssd1306_clear_screen(&dev, false);
+        ssd1306_clear_screen(&dev, false);
         ssd1306_clear_screen(&dev, false);
         ssd1306_clear_screen(&dev, false);
 
@@ -203,7 +214,7 @@ void display_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINTE
     if(warnings == 0){
         ssd1306_display_text(&dev, 7, "      (^_^)      ", 17, false);
     } else if(warnings > 0){
-        ssd1306_display_text(&dev, 7, "      (T_T)      ", 17, false);
+        ssd1306_display_text(&dev, 7, "      (T-T)      ", 17, false);
     }
 }
 
