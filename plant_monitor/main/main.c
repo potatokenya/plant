@@ -48,8 +48,8 @@
 #define LEDC_OUTPUT_IO_3G       (5) // Define the output GPIO for green
 #define LEDC_OUTPUT_IO_2R       (6) // Define the output GPIO for red
 #define LEDC_OUTPUT_IO_2G       (7) // Define the output GPIO for green
-#define LEDC_OUTPUT_IO_1R       (8) // Define the output GPIO for red
-#define LEDC_OUTPUT_IO_1G       (9) // Define the output GPIO for green
+#define LEDC_OUTPUT_IO_1R       (9) // Define the output GPIO for red
+#define LEDC_OUTPUT_IO_1G       (8) // Define the output GPIO for green
 
 #define LEDC_CHANNEL_RED1       LEDC_CHANNEL_0
 #define LEDC_CHANNEL_GREEN1     LEDC_CHANNEL_1
@@ -136,8 +136,19 @@ void display_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINTE
         ESP_LOGI(tag, "Displaying warnings");
         ssd1306_clear_screen(&dev, false);
         ssd1306_clear_screen(&dev, false);
+        ssd1306_clear_screen(&dev, false);
+        ssd1306_clear_screen(&dev, false);
         ssd1306_contrast(&dev, 0xff);
 
+        ssd1306_display_text(&dev, 3, "WARNING", 7, false); //ADDED: changed it to be in the center
+		ssd1306_hardware_scroll(&dev, SCROLL_RIGHT);
+
+		vTaskDelay(3000 / portTICK_PERIOD_MS);
+
+        ssd1306_hardware_scroll(&dev, SCROLL_STOP);
+
+        ssd1306_clear_screen(&dev, false);
+        ssd1306_clear_screen(&dev, false);
         ssd1306_clear_screen(&dev, false);
         ssd1306_clear_screen(&dev, false);
 
@@ -146,35 +157,35 @@ void display_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINTE
         ssd1306_display_text(&dev, 0, warning_text, strlen(warning_text), false);
 
         if(TOO_MUCH_LIGHT == 1){//ADDED: display warning about light pointer.
-            ssd1306_display_text(&dev, 1, " Too much light! ", 17, false);
+            ssd1306_display_text(&dev, 2, " Too much light! ", 17, false);
         }
 
         if(TEMP_OUT == 1){
-            ssd1306_display_text(&dev, 2, " Temp (out) low! ", 17, false);
+            ssd1306_display_text(&dev, 3, "  Temp(out)  low! ", 17, false);
         } else if(TEMP_OUT == 2){
-            ssd1306_display_text(&dev, 2, " Temp(out) high! ", 17, false);
+            ssd1306_display_text(&dev, 3, "  Temp(out) high! ", 17, false);
         }
 
         if(HUM_OUT == 1){
-            ssd1306_display_text(&dev, 3, "  Hum(out) low!  ", 17, false);
+            ssd1306_display_text(&dev, 4, "  Hum(out)  low!  ", 17, false);
         } else if(HUM_OUT == 2){
-            ssd1306_display_text(&dev, 3, " Hum (out) high! ", 17, false);
+            ssd1306_display_text(&dev, 4, "  Hum(out)  high! ", 17, false);
         }
 
 
         if(TEMP_IN == 1){
-            ssd1306_display_text(&dev, 4, " Temp (in) low! ", 17, false);
+            ssd1306_display_text(&dev, 5, "  Temp(in)  low!  ", 17, false);
         } else if(TEMP_IN == 2){
-            ssd1306_display_text(&dev, 4, " Temp(in) high! ", 17, false);
+            ssd1306_display_text(&dev, 5, "  Temp(in) high!  ", 17, false);
         }
 
         if(HUM_IN == 1){
-            ssd1306_display_text(&dev, 5, "  Hum (in) low!  ", 17, false);
+            ssd1306_display_text(&dev, 6, "  Hum(in)   low!  ", 17, false);
         } else if(HUM_IN == 2){
-            ssd1306_display_text(&dev, 5, "  Hum(in) high!  ", 17, false);
+            ssd1306_display_text(&dev, 6, "  Hum(in)  high!  ", 17, false);
         }
 
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
 
         ssd1306_clear_screen(&dev, false);
         ssd1306_clear_screen(&dev, false);
@@ -209,14 +220,14 @@ void display_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINTE
     char light_text[20];
     
     if(TOO_MUCH_LIGHT == 1){
-        snprintf(light_text, sizeof(light_text), "Light: too bright");
-        ssd1306_display_text(&dev, 6, humin_text, 17, false);
+        snprintf(light_text, sizeof(light_text), "L    too bright");
+        ssd1306_display_text(&dev, 6, light_text, 17, false);
     } 
 
     if(warnings == 0){
         ssd1306_display_text(&dev, 7, "      (^_^)      ", 17, false);
     } else if(warnings > 0){
-        ssd1306_display_text(&dev, 7, "      (T_T)      ", 17, false);
+        ssd1306_display_text(&dev, 7, "      (T-T)      ", 17, false);
     }
 }
 
@@ -289,10 +300,10 @@ void temperaure_humidity_demo(int *TEMP_OUT_POINTER, int *HUM_OUT_POINTER){
 
 void stemma_soil_demo(int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
     int ret = ESP_OK;
-    // uint16_t moisture_value = 0;
-    uint16_t dev = {0};
+    uint16_t moisture_value = 0;
+    // uint16_t dev = {0};
     float temperature_value;
-    float moisture_value = 0;
+    //float moisture_value = 0;
 
     //int *MOISTURE_BAD = (int*) MST_POINTER;//ADDED: Moisture Pointer
 
@@ -300,13 +311,12 @@ void stemma_soil_demo(int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
     ESP_ERROR_CHECK(adafruit_stemma_soil_sensor_shared_i2c_init());
 
 
-    ret = adafruit_stemma_soil_sensor_read_moisture(I2C_NUM, &dev);
+    ret = adafruit_stemma_soil_sensor_read_moisture(I2C_NUM, &moisture_value);
 
-    moisture_value = (moisture_value / 1800) * 100;
 
     if (ret == ESP_OK)
     {
-        ESP_LOGI(tag, "Adafruit Stemma sensor value: = %.1f%%", ((moisture_value/2000)*100));
+        ESP_LOGI(tag, "Adafruit Stemma sensor value: = %u", moisture_value);
     }
 
     ret = adafruit_stemma_soil_sensor_read_temperature(I2C_NUM, &temperature_value);
@@ -316,18 +326,21 @@ void stemma_soil_demo(int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
         ESP_LOGI(tag, "Adafruit Stemma sensor value: = %.1f %%", temperature_value);
     }
 
+    //find the moisutre value in percentage in the range 0-800
+    humidity_in = (moisture_value / 1200.0) * 100;
+
     
-    if(moisture_value >= 60 && moisture_value <= 70){
-        ESP_LOGI(tag, "Moisture is good, moisture value: %.f %%", moisture_value);
+    if(humidity_in >= 60 && humidity_in <= 70){
+        ESP_LOGI(tag, "Moisture is good, moisture value: %.1f %%", humidity_in);
         *HUM_IN_POINTER = 0;
 
-    } else if (moisture_value < 60){
-        ESP_LOGI(tag, "Too dry, moisture value: %.f %%. Ideal: 60 - 70 %%", moisture_value);
+    } else if (humidity_in < 60){
+        ESP_LOGI(tag, "Too dry, moisture value: %.1f %%. Ideal: 60 - 70 %%", humidity_in);
         *HUM_IN_POINTER = 1;
         warnings++;
         
-    } else if (moisture_value > 70){
-        ESP_LOGI(tag, "Too wet, moisture value: %.f %%. Ideal: 60 - 70 %%", moisture_value);
+    } else if (humidity_in > 70){
+        ESP_LOGI(tag, "Too wet, moisture value: %.1f %%. Ideal: 60 - 70 %%", humidity_in);
         *HUM_IN_POINTER = 2;
         warnings++;
 
@@ -340,12 +353,12 @@ void stemma_soil_demo(int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
         *TEMP_IN_POINTER = 0;
 
     } else if (temperature_value < 10){
-        ESP_LOGI(tag, "Too cold, temperature value: %.f °C. Ideal: 60 - 70 %%", moisture_value);
+        ESP_LOGI(tag, "Too cold, temperature value: %.1f °C. Ideal: 60 - 70 %%", temperature_value);
         *TEMP_IN_POINTER = 1;
         warnings++;
         
     } else if (temperature_value > 30){
-        ESP_LOGI(tag, "Too warm, temperature value: %.f °C. Ideal: 60 - 70 %%", moisture_value);
+        ESP_LOGI(tag, "Too warm, temperature value: %.1f °C. Ideal: 60 - 70 %%", temperature_value);
         *TEMP_IN_POINTER = 2;
         warnings++;
 
@@ -357,9 +370,9 @@ void stemma_soil_demo(int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
     vTaskDelay((500) / portTICK_PERIOD_MS);
 
     temperature_in = temperature_value;
-    humidity_in = moisture_value;
+    // humidity_in = moisture_value;
     sensor_data.temperature_in = temperature_value;
-    sensor_data.humidity_in = moisture_value;
+    sensor_data.humidity_in = humidity_in;
 }
 
 void led_fade_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINTER, int *HUM_IN_POINTER, int *TEMP_IN_POINTER){
@@ -427,8 +440,8 @@ void led_fade_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINT
 
 	if(TOO_MUCH_LIGHT == 0){//ADDED: RGB LED turns red as a warning
 		// Set duty
-		ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_RED1, duty));
-		ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_GREEN1, 4096));
+		ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_RED1, 4096));
+		ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_GREEN1, duty));
 		//ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_BLUE, 0));
 		// Update duty to apply the new value
 		ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_RED1));
@@ -438,8 +451,8 @@ void led_fade_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINT
 		vTaskDelay((10) / portTICK_PERIOD_MS);
 		printf("Toomuchlight = 0 %d\n", duty);//ADDED: insert code for red RGB LED, that should stay on until all warnings are taken care of and the code refreshes.
 	} else if (TOO_MUCH_LIGHT == 1){
-        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_RED1, 1));
-        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_GREEN1, duty));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_RED1, duty));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_GREEN1, 4096));
         // ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_BLUE, duty));
         // Update duty to apply the new value
         ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_RED1));
@@ -929,7 +942,7 @@ void app_main(void)
 	//hook isr handler for specific gpio pin
 	gpio_isr_handler_add(BUTTON_2_GPIO_PIN, gpio_isr_handler, (void*) BUTTON_2_GPIO_PIN);
 
-	int TOO_MUCH_LIGHT = 0, *LIGHT_POINTER = &TOO_MUCH_LIGHT;//ADDED: the value of the alarm and a pointer to it
+	int TOO_MUCH_LIGHT = 0, *LIGHT_POINTER = &TOO_MUCH_LIGHT;//the value of the alarm and a pointer to it
 
     int TEMP_OUT = 0, *TEMP_OUT_POINTER = &TEMP_OUT;
 
@@ -977,15 +990,14 @@ void app_main(void)
         // Write sensor data to the current day's log
         write_data_to_daily_log();
 
-        //uncomment this to see contents of spiffs file
-        //read_current_day_spiffs_file();
+        // uncomment this to see contents of spiffs file
+        read_current_day_spiffs_file();
 
-        printf("\nThe demos are finished. Prees the reset button if you want to restart.\n");
-        printf("Use the code in the demo in your own software. Goodbye!\n");
+        printf("\nThe demos are finished. Prees the reset button if you want to restart or wait for the timer.\n");
         fflush(stdout);
 
         const TickType_t wait_ticks = pdMS_TO_TICKS(1000); // Check every 1 second
-        TickType_t remaining_delay = pdMS_TO_TICKS(600000);
+        TickType_t remaining_delay = pdMS_TO_TICKS(60000);
 
         while (remaining_delay > 0) {
             if (restart_loop) {
@@ -995,10 +1007,6 @@ void app_main(void)
             vTaskDelay(wait_ticks);    // Delay in small increments
             remaining_delay -= wait_ticks; // Reduce remaining delay
         }
-
-        //This would automatically restart the ESP32
-        //vTaskDelay(pdMS_TO_TICKS(1800000));//ADDED: This is a one hour delay = 500/*that's one seconde*/ * 60 * 60 = 1800000. EDIT: I set it to 2 min.
-        //vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(600000));
     }
     //esp_restart();
 }
