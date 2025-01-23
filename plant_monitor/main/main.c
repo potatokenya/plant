@@ -676,7 +676,7 @@ static QueueHandle_t gpio_evt_queue = NULL;
 static volatile bool restart_loop = 0;
 
 static void IRAM_ATTR gpio_isr_handler(void* arg) {
-    ESP_EARLY_LOGI("ISR", "Interrupt triggered on GPIO %d", (uint32_t)arg);
+    //ESP_EARLY_LOGI("ISR", "Button Pressed", (uint32_t)arg);
     restart_loop = 1;  // Signal the main loop to restart
 }
 
@@ -692,10 +692,10 @@ static void gpio_task_example(void* arg) {
 
 void init_spiffs() {
     esp_vfs_spiffs_conf_t conf = {
-        .base_path = "/spiffs",     // Mount point in the file system
-        .partition_label = NULL,   // Use the default SPIFFS partition
-        .max_files = 5,            // Maximum files that can be open at once
-        .format_if_mount_failed = true // Format if mount fails
+        .base_path = "/spiffs",    
+        .partition_label = NULL,  
+        .max_files = 8,            
+        .format_if_mount_failed = true 
     };
 
     esp_err_t ret = esp_vfs_spiffs_register(&conf);
@@ -711,8 +711,7 @@ void init_spiffs() {
         return;
     }
 
-    // Check the amount of space available in the SPIFFS partition
-    size_t total = 0, used = 0;
+    size_t total = 0, used = 0; //to show how much space is used 
     ret = esp_spiffs_info(NULL, &total, &used);
     if (ret != ESP_OK) {
         ESP_LOGE("SPIFFS", "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
