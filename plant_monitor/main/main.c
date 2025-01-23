@@ -63,8 +63,8 @@
 
 #define BUZZ_TIMER              LEDC_TIMER_1
 #define BUZZ_MODE               LEDC_LOW_SPEED_MODE
-#define BUZZ_OUTPUT_IO          (18) // Define the output GPIO for red
-#define BUZZ_CHANNEL            LEDC_CHANNEL_6
+#define BUZZ_OUTPUT_IO          (1) // Define the output GPIO for red
+#define BUZZ_CHANNEL            ADC1_CHANNEL_1
 #define BUZZ_DUTY_RES           LEDC_TIMER_13_BIT // Set duty resolution to 13 bits
 #define BUZZ_DUTY               (4096) // Set duty to 50%. (2 ** 13) * 50% = 4096
 #define BUZZ_FREQUENCY          (1000) // Frequency in Hertz. Set frequency at 1 kHz
@@ -436,10 +436,10 @@ void led_fade_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINT
 		//ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_BLUE));
 		//1000 ms delay
 		vTaskDelay((10) / portTICK_PERIOD_MS);
-		//printf("%d\n", duty);//ADDED: insert code for red RGB LED, that should stay on until all warnings are taken care of and the code refreshes.
+		printf("Toomuchlight = 0 %d\n", duty);//ADDED: insert code for red RGB LED, that should stay on until all warnings are taken care of and the code refreshes.
 	} else if (TOO_MUCH_LIGHT == 1){
-        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_RED1, duty));
-        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_GREEN1, 4096));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_RED1, 1));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_GREEN1, duty));
         // ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_BLUE, duty));
         // Update duty to apply the new value
         ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_RED1));
@@ -447,7 +447,7 @@ void led_fade_demo(int *LIGHT_POINTER, int *TEMP_OUT_POINTER, int *HUM_OUT_POINT
         // ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_BLUE));
         //1000 ms delay
         vTaskDelay((10) / portTICK_PERIOD_MS);
-        //printf("%d\n", duty);
+        printf("Toomuchlight = 1 %d\n", duty);
     } else {
         return;
     }
@@ -652,13 +652,13 @@ void light_adc_demo(int *LIGHT_POINTER){
 
     int *TOO_MUCH_LIGHT = (int*)LIGHT_POINTER;//ADDED: Light pointer.
     //ADDED
-    if(adc1_get_raw(ADC1_CHANNEL_0) <= (300)){
-        ESP_LOGI(tag, "Warning: Too much light. Light sensor ADC value: %d. Ideal: 0-300", val);
+    if(adc1_get_raw(ADC1_CHANNEL_0) <= (800)){
+        ESP_LOGI(tag, "Warning: Too much light. Light sensor ADC value: %d. Ideal: 0-800", val);
         vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 1 second
         *TOO_MUCH_LIGHT = 1;
         warnings++;
 
-    } else if (adc1_get_raw(ADC1_CHANNEL_0) >= (301)){//301 instead, because we've decided that anything above 300 is fine.
+    } else if (adc1_get_raw(ADC1_CHANNEL_0) >= (801)){//301 instead, because we've decided that anything above 300 is fine.
         //turns off the alarms for TOO_MUCH_LIGHT, once there isn't too much light anymore.
         ESP_LOGI(tag, "Good lightning!");
         *TOO_MUCH_LIGHT = 0;
